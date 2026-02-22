@@ -1,0 +1,42 @@
+Windows Registry Editor Version 5.00
+
+; ─── WineD3D / Direct3D Settings ───────────────────────────────────────────
+; These optimise rendering for a VNC-streamed environment (KasmVNC).
+; GR2Analyst requires Shader Model 2.0+ (D3D9).
+[HKEY_CURRENT_USER\Software\Wine\Direct3D]
+; Use OpenGL backend (default). Switch to "vulkan" if GPU + mesa-vulkan present.
+"renderer"="gl"
+; Allow shader model 2/3 – required by GR2Analyst
+"MaxShaderModelVS"="3"
+"MaxShaderModelPS"="3"
+; Use GLSL for shader translation (better quality than ARB)
+"UseGLSL"="enabled"
+; Offscreen rendering method – fbo is the most compatible
+"OffscreenRenderingMode"="fbo"
+; Video memory override (256 MB) – helps GR2Analyst allocate textures
+"VideoMemorySize"="256"
+; Enable strict draw ordering for correct compositing
+"StrictDrawOrdering"="enabled"
+; Disable multisampling to reduce GPU load in VNC streaming
+"Multisampling"="disabled"
+
+; ─── X11 Driver Settings ──────────────────────────────────────────────────
+[HKEY_CURRENT_USER\Software\Wine\X11 Driver]
+; Better font rendering
+"ClientSideWithRender"="Y"
+
+; ─── Font smoothing (ClearType) ──────────────────────────────────────────
+[HKEY_CURRENT_USER\Control Panel\Desktop]
+"FontSmoothing"="2"
+"FontSmoothingOrientation"=dword:00000001
+"FontSmoothingType"=dword:00000002
+"FontSmoothingGamma"=dword:00000578
+
+; ─── DPI scaling: 96 DPI (standard) ──────────────────────────────────────
+[HKEY_CURRENT_USER\Control Panel\Desktop]
+"LogPixels"=dword:00000060
+
+; ─── Internet / WinInet – let Wine use the system network stack ──────────
+; (GR2Analyst uses WinInet for polling Level 2 feeds & warning downloads)
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings]
+"ProxyEnable"=dword:00000000

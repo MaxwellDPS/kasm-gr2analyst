@@ -1,0 +1,47 @@
+; Enhanced Velocity Color Table for GR2Analyst
+; Wider range for high-shear events; improved rotation detection.
+;
+; Product: BV  (Base Velocity)
+; Units:   kts
+;
+Product: BV
+Units:   kts
+Step:    10
+
+; RF (Range Folded)
+Color: -999  119  0  125
+
+; Strong inbound (toward radar)
+Color: -120  255 255 255
+Color: -100  255  0  255
+Color: -80   255  0  128
+Color: -70   220  0    0
+Color: -60   255  0    0
+Color: -50   255 100    0
+Color: -40   255 170    0
+Color: -30   255 225    0
+
+; Weak inbound
+Color: -20   0   128   0
+Color: -10   0   200   0
+Color:  -5   0   255   0
+
+; Near zero (dealiased centre)
+Color:   0   100 100 100
+
+; Weak outbound (away from radar)
+Color:   5   0   200 255
+Color:  10   0   150 255
+Color:  20   0    50 255
+
+; Moderate outbound
+Color:  30   0     0 200
+Color:  40   0     0 150
+
+; Strong outbound
+Color:  50   100   0 150
+Color:  60   150   0 150
+Color:  70   200   0 200
+Color:  80   200 100 200
+Color: 100   230 180 230
+Color: 120   255 255 255

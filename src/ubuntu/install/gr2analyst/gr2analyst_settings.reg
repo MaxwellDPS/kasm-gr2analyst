@@ -1,0 +1,91 @@
+Windows Registry Editor Version 5.00
+
+; ─── GR2Analyst Pre-Configuration ──────────────────────────────────────────
+; These registry keys configure GR2Analyst with sensible defaults.
+; GR2Analyst stores its settings in the Windows registry under:
+;   HKCU\Software\GRLevelX\GR2Analyst (v2)
+;   HKCU\Software\GRLevelX\GR2Analyst_3 (v3)
+;
+; We set both to cover whichever version gets installed.
+
+; ──── Version 2 Settings ──────────────────────────────────────────────────
+[HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst]
+; Polling: Iowa State free Level 2 feed (HTTPS)
+"PollingSource0"="https://mesonet-nexrad.agron.iastate.edu/level2/raw/"
+"PollingSourceCount"=dword:00000001
+; Default startup radar site – KFWS (Dallas-Fort Worth) is central US
+"StartupSite"="KFWS"
+; Show background map imagery by default
+"ShowBackground"=dword:00000001
+; Show state outlines
+"ShowStates"=dword:00000001
+; Show county outlines
+"ShowCounties"=dword:00000001
+; Show roads
+"ShowRoads"=dword:00000001
+; Show city labels
+"ShowCities"=dword:00000001
+; Show active warnings
+"ShowWarnings"=dword:00000001
+; Show storm tracks
+"ShowTracks"=dword:00000001
+; Enable hail icons
+"ShowHail"=dword:00000001
+; Enable mesocyclone icons
+"ShowMeso"=dword:00000001
+; Enable TVS (Tornado Vortex Signature) icons
+"ShowTVS"=dword:00000001
+; Enable LSR icons (Local Storm Reports)
+"ShowLSR"=dword:00000001
+; Animation speed (ms per frame)
+"AnimSpeed"=dword:000000c8
+; Number of panels (1 = single panel default)
+"NumPanels"=dword:00000001
+; Background colour – dark for radar contrast
+"BackgroundColor"=dword:00000000
+
+; ──── Version 3 Settings ──────────────────────────────────────────────────
+[HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst_3]
+"PollingSource0"="https://mesonet-nexrad.agron.iastate.edu/level2/raw/"
+"PollingSourceCount"=dword:00000001
+"StartupSite"="KFWS"
+"ShowBackground"=dword:00000001
+"ShowStates"=dword:00000001
+"ShowCounties"=dword:00000001
+"ShowRoads"=dword:00000001
+"ShowCities"=dword:00000001
+"ShowWarnings"=dword:00000001
+"ShowTracks"=dword:00000001
+"ShowHail"=dword:00000001
+"ShowMeso"=dword:00000001
+"ShowTVS"=dword:00000001
+"ShowLSR"=dword:00000001
+"AnimSpeed"=dword:000000c8
+"NumPanels"=dword:00000001
+"BackgroundColor"=dword:00000000
+
+; ──── GIS overlay colours (makes map features readable on radar) ──────────
+[HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst\GIS]
+; State outlines – light gray
+"StateColor"=dword:00808080
+; County outlines – dark gray
+"CountyColor"=dword:00404040
+; Highway colour – dim yellow
+"HighwayColor"=dword:00606030
+; City label colour – white
+"CityLabelColor"=dword:00FFFFFF
+
+[HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst_3\GIS]
+"StateColor"=dword:00808080
+"CountyColor"=dword:00404040
+"HighwayColor"=dword:00606030
+"CityLabelColor"=dword:00FFFFFF
+
+; ──── Algorithm settings (hail algorithm thresholds) ──────────────────────
+[HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst\Algorithm]
+"HailReflThreshold"="56"
+"HailReflDelta"="18.5"
+
+[HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst_3\Algorithm]
+"HailReflThreshold"="56"
+"HailReflDelta"="18.5"

@@ -1,0 +1,54 @@
+; Enhanced Reflectivity Color Table for GR2Analyst
+; Optimised for storm analysis with good contrast at severe thresholds.
+; Based on common NWS/community conventions.
+;
+; Product: BR  (Base Reflectivity)
+; Units:   dBZ
+;
+Product: BR
+Units:   dBZ
+Step:    5
+
+; ND (No Data) area – transparent black
+Color: -999  0   0   0   0
+; Below threshold – no echo
+Color: -30   0   0   0   0
+
+; Very weak returns (ground clutter / noise range)
+Color: -15   70  70  70
+Color: -10   100 100 100
+
+; Light precipitation / drizzle
+Color:  5    4   233 231
+Color:  10   1   159 244
+
+; Light rain
+Color:  15   3   0   244
+
+; Moderate rain
+Color:  20   2   253 2
+Color:  25   1   197 1
+
+; Heavy rain
+Color:  30   0   142 0
+
+; Very heavy rain
+Color:  35   253 248 2
+
+; Intense rain / small hail likely
+Color:  40   229 188 0
+
+; Severe – large hail possible
+Color:  45   253 139 0
+Color:  50   253 0   0
+
+; Very severe – large hail / tornadoes
+Color:  55   212 0   0
+Color:  60   188 0   0
+
+; Extreme
+Color:  65   248 0   253
+Color:  70   152 84  198
+
+; Off-the-charts (debris signature territory)
+Color:  75   255 255 255

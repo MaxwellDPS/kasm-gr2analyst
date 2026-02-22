@@ -1,0 +1,185 @@
+###############################################################################
+# GitHub Actions CI – Build & Push KASM GR2Analyst Workspace Image
+###############################################################################
+name: Build KASM GR2Analyst Image
+
+on:
+  push:
+    branches: [main, develop]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      base_tag:
+        description: 'KASM core image tag (e.g. develop, 1.18.0)'
+        required: false
+        default: 'develop'
+      push_image:
+        description: 'Push image to registry?'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['true', 'false']
+
+env:
+  # ── Registry / image config ──────────────────────────────────────────────
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/kasm-gr2analyst
+  # ── KASM base image tag ────────────────────────────────────────────────
+  BASE_TAG: ${{ github.event.inputs.base_tag || 'develop' }}
+  BASE_IMAGE: core-ubuntu-jammy
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Lint – quick sanity checks
+  # ═══════════════════════════════════════════════════════════════════════════
+  lint:
+    name: Lint Dockerfile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          # DL3008 (pin versions) is noisy for Wine/Mesa packages
+          # DL3003 (use WORKDIR) – we do, but Hadolint false-positives
+          ignore: DL3008,DL3003,DL3015,SC2086
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Build (and optionally push)
+  # ═══════════════════════════════════════════════════════════════════════════
+  build:
+    name: Build Image
+    needs: lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Free up disk space (Wine + .NET + KASM base = large layers) ────
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet \
+                      /opt/ghc /usr/local/share/boost || true
+          sudo apt-get clean || true
+          docker system prune -af || true
+          df -h
+
+      # ── Docker Buildx ──────────────────────────────────────────────────
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ── Login to GHCR ──────────────────────────────────────────────────
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Login to Docker Hub (optional, for wider distribution) ─────────
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request' && secrets.DOCKERHUB_TOKEN != ''
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        continue-on-error: true
+
+      # ── Metadata (tags & labels) ───────────────────────────────────────
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ env.BASE_TAG }}
+
+      # ── Build & Push ───────────────────────────────────────────────────
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.event.inputs.push_image == 'true') }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BASE_TAG=${{ env.BASE_TAG }}
+            BASE_IMAGE=${{ env.BASE_IMAGE }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # Wine + .NET install is heavy; give the builder plenty of memory
+          # and a generous timeout
+          no-cache-filters: |
+
+      # ── Image size report ──────────────────────────────────────────────
+      - name: Report image size
+        if: success()
+        run: |
+          echo "### 🐳 Image Tags" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          docker images --filter "reference=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}*" \
+            --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" >> $GITHUB_STEP_SUMMARY 2>/dev/null || true
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Smoke test – start the container and verify GR2Analyst binary exists
+  # ═══════════════════════════════════════════════════════════════════════════
+  test:
+    name: Smoke Test
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Pull image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Verify GR2Analyst installation
+        run: |
+          docker run --rm \
+            --entrypoint /bin/bash \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -c '
+              echo "=== Checking Wine ===" &&
+              wine --version &&
+              echo "=== Checking GR2Analyst files ===" &&
+              FOUND=0 &&
+              for d in \
+                "/home/kasm-default-profile/.wine/drive_c/Program Files/GRLevelX/GR2Analyst_3" \
+                "/home/kasm-default-profile/.wine/drive_c/Program Files/GRLevelX/GR2Analyst_2" \
+                "/home/kasm-default-profile/.wine/drive_c/Program Files/GRLevelX/GR2Analyst" \
+                "/home/kasm-default-profile/.wine/drive_c/Program Files/GR2Analyst"; do
+                if [ -d "$d" ]; then
+                  echo "✓ Found install at: $d"
+                  ls -la "$d/" | head -20
+                  FOUND=1
+                  break
+                fi
+              done &&
+              [ "$FOUND" = "1" ] || { echo "✗ GR2Analyst not found!"; exit 1; } &&
+              echo "=== Checking color tables ===" &&
+              find /home/kasm-default-profile/.wine -name "*.pal" -type f 2>/dev/null | head -10 &&
+              echo "=== Checking network ===" &&
+              ping -c 1 mesonet-nexrad.agron.iastate.edu || echo "(ping blocked in CI – OK)" &&
+              echo "=== All checks passed ==="
+            '

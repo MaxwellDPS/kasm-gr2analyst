@@ -1,0 +1,39 @@
+# ─── GR2Analyst Placefiles ─────────────────────────────────────────────────
+# Copy these URLs into Windows → Show Placefile Manager inside GR2Analyst.
+# These are popular free community placefiles. For premium placefiles with
+# lightning, models, and enhanced data, consider AllisonHouse or
+# GRLevelXMods subscriptions.
+#
+# ──── PlacefileNation (free) ───────────────────────────────────────────────
+# Surface observations (METAR)
+https://placefilenation.com/placefiles/sfc_observations.php
+# Active Warnings (NWS)
+https://placefilenation.com/placefiles/warnings.php
+# SPC Convective Outlooks
+https://placefilenation.com/placefiles/outlooks.php
+# mPING Spotter Reports
+https://placefilenation.com/placefiles/mping.php
+# CoCoRaHS precipitation reports
+https://placefilenation.com/placefiles/cocorahs.php
+#
+# ──── RedTeamWx (free) ────────────────────────────────────────────────────
+# Surface weather plot (METAR with icons)
+http://placefiles.redteamwx.com/wx.php
+# Surface temperature plot
+http://placefiles.redteamwx.com/T.php
+# Surface dewpoint plot
+http://placefiles.redteamwx.com/Td.php
+# Visibility plot
+http://placefiles.redteamwx.com/vis.php
+# Wind plot
+http://placefiles.redteamwx.com/wind.php
+#
+# ──── NWS / SPC (free) ───────────────────────────────────────────────────
+# SPC Mesoscale Discussions
+# (Check grlevelxusers.com for current community-maintained URLs)
+#
+# ──── Paid Services ──────────────────────────────────────────────────────
+# AllisonHouse ($11.99+/mo) – placefiles, lightning, Level 2/3 data
+#   https://www.allisonhouse.com
+# GRLevelXMods ($10.99/mo) – placefiles, lightning, customization tools
+#   https://grlevelxmods.com
