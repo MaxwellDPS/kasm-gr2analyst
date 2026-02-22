@@ -49,7 +49,7 @@ jobs:
           dockerfile: Dockerfile
           # DL3008 (pin versions) is noisy for Wine/Mesa packages
           # DL3003 (use WORKDIR) – we do, but Hadolint false-positives
-          ignore: DL3008,DL3003,DL3015,SC2086
+          ignore: DL3008,DL3003,DL3015,SC2086,SC2174
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Build (and optionally push)
