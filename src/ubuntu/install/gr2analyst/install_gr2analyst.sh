@@ -24,7 +24,7 @@ fi
 echo ">>> Running GR2Analyst installer (silent) …"
 # Inno Setup /VERYSILENT suppresses all UI; /NORESTART skips reboot prompt;
 # /SP- suppresses "Setup will install…" confirmation.
-wine "${INSTALLER}" /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES || true
+xvfb-run wine "${INSTALLER}" /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES || true
 wineserver --wait
 
 echo ">>> Verifying installation …"

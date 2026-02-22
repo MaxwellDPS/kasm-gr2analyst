@@ -34,6 +34,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     WINEDLLOVERRIDES="mscoree=d;mshtml=d" \
     # Mesa llvmpipe fallback when no GPU is mounted
     LIBGL_ALWAYS_SOFTWARE=1 \
+    # Required for Wine/wineserver during Docker build
+    XDG_RUNTIME_DIR=/tmp/runtime-root \
     # GR2Analyst install path inside the Wine prefix
     GR2A_INSTALL_DIR="C:\\Program Files\\GRLevelX\\GR2Analyst_2" \
     GR2A_INSTALL_DIR_UNIX="/home/kasm-default-profile/.wine/drive_c/Program Files/GRLevelX/GR2Analyst_2"
@@ -67,7 +69,9 @@ RUN dpkg --add-architecture i386 && \
         mesa-vulkan-drivers:i386 \
         # Core fonts & networking
         fonts-liberation fonts-dejavu-core \
-        dnsutils iputils-ping net-tools iproute2 && \
+        dnsutils iputils-ping net-tools iproute2 \
+        # Virtual framebuffer for headless Wine installs during build
+        xvfb && \
     # ── Winetricks (latest from GitHub) ──
     wget -qO /usr/local/bin/winetricks \
         https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
@@ -78,14 +82,16 @@ RUN dpkg --add-architecture i386 && \
 ###############################################################################
 # 2. Initialise the Wine prefix & install runtime requirements
 ###############################################################################
-RUN echo ">>> Creating 32-bit Wine prefix …" && \
-    wineboot --init && \
+RUN mkdir -p /tmp/runtime-root && \
+    echo ">>> Creating 32-bit Wine prefix …" && \
+    xvfb-run wineboot --init && \
     wineserver --wait && \
     # Set Windows version to Windows 10 for best compatibility
-    winetricks -q win10 && \
+    xvfb-run winetricks -q win10 && \
     wineserver --wait && \
     # GR2Analyst requires d3d9 / d3dx9 / d3dcompiler + vcrun + .NET support
-    winetricks -q \
+    # Use xvfb-run for headless Wine installer execution
+    xvfb-run winetricks -q \
         d3dx9 \
         d3dcompiler_43 \
         d3dcompiler_47 \
@@ -100,7 +106,7 @@ RUN echo ">>> Creating 32-bit Wine prefix …" && \
 # 3. Wine display / D3D registry tweaks for headless + KasmVNC rendering
 ###############################################################################
 COPY src/ubuntu/install/wine_override/wine_d3d.reg /tmp/wine_d3d.reg
-RUN wine regedit /tmp/wine_d3d.reg && \
+RUN xvfb-run wine regedit /tmp/wine_d3d.reg && \
     wineserver --wait && \
     rm /tmp/wine_d3d.reg
 
@@ -121,7 +127,7 @@ COPY src/ubuntu/install/gr2analyst/color_tables/ \
 COPY src/ubuntu/install/gr2analyst/gr2analyst_settings.reg /tmp/gr2analyst_settings.reg
 COPY src/ubuntu/install/gr2analyst/placefiles.txt /tmp/placefiles.txt
 
-RUN wine regedit /tmp/gr2analyst_settings.reg && \
+RUN xvfb-run wine regedit /tmp/gr2analyst_settings.reg && \
     wineserver --wait && \
     # Copy placefiles list into the install directory for reference / first-run script
     cp /tmp/placefiles.txt "${GR2A_INSTALL_DIR_UNIX}/placefiles.txt" && \
