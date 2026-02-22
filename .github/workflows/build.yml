@@ -91,7 +91,7 @@ jobs:
 
       # ── Login to Docker Hub (optional, for wider distribution) ─────────
       - name: Login to Docker Hub
-        if: github.event_name != 'pull_request' && secrets.DOCKERHUB_TOKEN != ''
+        if: github.event_name != 'pull_request' && vars.DOCKERHUB_ENABLED == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -126,9 +126,6 @@ jobs:
             BASE_IMAGE=${{ env.BASE_IMAGE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # Wine + .NET install is heavy; give the builder plenty of memory
-          # and a generous timeout
-          no-cache-filters: |
 
       # ── Image size report ──────────────────────────────────────────────
       - name: Report image size
@@ -152,13 +149,15 @@ jobs:
     steps:
       - name: Pull image
         run: |
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${SHORT_SHA}
 
       - name: Verify GR2Analyst installation
         run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           docker run --rm \
             --entrypoint /bin/bash \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${SHORT_SHA} \
             -c '
               echo "=== Checking Wine ===" &&
               wine --version &&
