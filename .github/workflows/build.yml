@@ -146,18 +146,29 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
+    permissions:
+      packages: read
     steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Pull image
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${SHORT_SHA}
+          IMAGE=$(echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+          docker pull "${IMAGE}:${SHORT_SHA}"
 
       - name: Verify GR2Analyst installation
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          IMAGE=$(echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
           docker run --rm \
             --entrypoint /bin/bash \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${SHORT_SHA} \
+            "${IMAGE}:${SHORT_SHA}" \
             -c '
               echo "=== Checking Wine ===" &&
               wine --version &&
