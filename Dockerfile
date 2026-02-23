@@ -102,12 +102,16 @@ RUN mkdir -p /tmp/runtime-root && \
     winetricks -q d3dx9 d3dcompiler_43 d3dcompiler_47 && \
     wineserver --wait
 
-# Visual C++ runtime
+# Visual C++ runtime – the vc_redist.x86.exe installer often exits 130
+# under Wine in CI, but winetricks extracts the critical DLLs via
+# cabextract before running the installer, so we tolerate the failure.
 RUN mkdir -p /tmp/runtime-root && \
     Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     sleep 1 && \
-    winetricks -q vcrun2019 && \
-    wineserver --wait
+    { winetricks -q vcrun2019 || echo "vcrun2019 installer exited non-zero (expected in CI)"; } && \
+    wineserver --wait && \
+    ls -la "${WINEPREFIX}/drive_c/windows/system32/msvcp140.dll" && \
+    echo "vcrun2019 DLLs verified OK"
 
 # .NET Framework 4.8 (largest component)
 RUN mkdir -p /tmp/runtime-root && \
