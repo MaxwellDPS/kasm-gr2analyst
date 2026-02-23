@@ -81,26 +81,35 @@ RUN dpkg --add-architecture i386 && \
 
 ###############################################################################
 # 2. Initialise the Wine prefix & install runtime requirements
+#    Split into separate layers for better Docker cache utilisation.
 ###############################################################################
 RUN mkdir -p /tmp/runtime-root && \
     echo ">>> Creating 32-bit Wine prefix …" && \
     xvfb-run wineboot --init && \
     wineserver --wait && \
-    # Set Windows version to Windows 10 for best compatibility
     xvfb-run winetricks -q win10 && \
     wineserver --wait && \
-    # GR2Analyst requires d3d9 / d3dx9 / d3dcompiler + vcrun + .NET support
-    # Use xvfb-run for headless Wine installer execution
-    xvfb-run winetricks -q \
-        d3dx9 \
-        d3dcompiler_43 \
-        d3dcompiler_47 \
-        vcrun2019 \
-        dotnet48 \
-        corefonts \
-        allfonts && \
-    wineserver --wait && \
     echo ">>> Wine prefix ready."
+
+# DirectX libraries (d3dx9, d3dcompiler)
+RUN mkdir -p /tmp/runtime-root && \
+    xvfb-run winetricks -q d3dx9 d3dcompiler_43 d3dcompiler_47 && \
+    wineserver --wait
+
+# Visual C++ runtime
+RUN mkdir -p /tmp/runtime-root && \
+    xvfb-run winetricks -q vcrun2019 && \
+    wineserver --wait
+
+# .NET Framework 4.8 (largest component)
+RUN mkdir -p /tmp/runtime-root && \
+    xvfb-run winetricks -q dotnet48 && \
+    wineserver --wait
+
+# Fonts
+RUN mkdir -p /tmp/runtime-root && \
+    xvfb-run winetricks -q corefonts allfonts && \
+    wineserver --wait
 
 ###############################################################################
 # 3. Wine display / D3D registry tweaks for headless + KasmVNC rendering
@@ -137,14 +146,10 @@ RUN xvfb-run wine regedit /tmp/gr2analyst_settings.reg && \
 # 6. Desktop entry & launch wrapper
 ###############################################################################
 COPY src/ubuntu/install/gr2analyst/launch_gr2analyst.sh /usr/local/bin/launch_gr2analyst.sh
-RUN chmod +x /usr/local/bin/launch_gr2analyst.sh
-
 COPY src/ubuntu/install/gr2analyst/gr2analyst.desktop \
      ${HOME}/Desktop/gr2analyst.desktop
-RUN chmod +x ${HOME}/Desktop/gr2analyst.desktop
-
-# Optional: set a nicer wallpaper
-RUN cp /usr/share/backgrounds/bg_kasm.png /usr/share/backgrounds/bg_default.png 2>/dev/null || true
+RUN chmod +x /usr/local/bin/launch_gr2analyst.sh ${HOME}/Desktop/gr2analyst.desktop && \
+    cp /usr/share/backgrounds/bg_kasm.png /usr/share/backgrounds/bg_default.png 2>/dev/null || true
 
 ###############################################################################
 # 7. Copy default profile so persistent-profile feature works
