@@ -86,7 +86,7 @@ RUN dpkg --add-architecture i386 && \
 #    Split into separate layers for better Docker cache utilisation.
 ###############################################################################
 RUN mkdir -p /tmp/runtime-root && \
-    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     sleep 1 && \
     echo ">>> Creating 32-bit Wine prefix …" && \
     wineboot --init && \
@@ -97,28 +97,28 @@ RUN mkdir -p /tmp/runtime-root && \
 
 # DirectX libraries (d3dx9, d3dcompiler)
 RUN mkdir -p /tmp/runtime-root && \
-    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     sleep 1 && \
     winetricks -q d3dx9 d3dcompiler_43 d3dcompiler_47 && \
     wineserver --wait
 
 # Visual C++ runtime
 RUN mkdir -p /tmp/runtime-root && \
-    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     sleep 1 && \
     winetricks -q vcrun2019 && \
     wineserver --wait
 
 # .NET Framework 4.8 (largest component)
 RUN mkdir -p /tmp/runtime-root && \
-    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     sleep 1 && \
     winetricks -q dotnet48 && \
     wineserver --wait
 
 # Fonts
 RUN mkdir -p /tmp/runtime-root && \
-    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     sleep 1 && \
     winetricks -q corefonts allfonts && \
     wineserver --wait
@@ -128,7 +128,7 @@ RUN mkdir -p /tmp/runtime-root && \
 ###############################################################################
 COPY src/ubuntu/install/wine_override/wine_d3d.reg /tmp/wine_d3d.reg
 RUN mkdir -p /tmp/runtime-root && \
-    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     sleep 1 && \
     wine regedit /tmp/wine_d3d.reg && \
     wineserver --wait && \
@@ -140,7 +140,7 @@ RUN mkdir -p /tmp/runtime-root && \
 ###############################################################################
 COPY src/ubuntu/install/gr2analyst/install_gr2analyst.sh ${INST_SCRIPTS}/gr2analyst/
 RUN mkdir -p /tmp/runtime-root && \
-    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     sleep 1 && \
     chmod +x ${INST_SCRIPTS}/gr2analyst/install_gr2analyst.sh && \
     bash ${INST_SCRIPTS}/gr2analyst/install_gr2analyst.sh && \
@@ -155,7 +155,7 @@ COPY src/ubuntu/install/gr2analyst/gr2analyst_settings.reg /tmp/gr2analyst_setti
 COPY src/ubuntu/install/gr2analyst/placefiles.txt /tmp/placefiles.txt
 
 RUN mkdir -p /tmp/runtime-root && \
-    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     sleep 1 && \
     wine regedit /tmp/gr2analyst_settings.reg && \
     wineserver --wait && \
