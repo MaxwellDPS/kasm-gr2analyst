@@ -8,13 +8,18 @@ set -euo pipefail
 
 GR2A_V3_URL="http://grlevelx.com/downloads/gr2analyst_3_setup.exe"
 GR2A_V2_URL="http://grlevelx.com/downloads/gr2analyst_2_setup.exe"
+GR2A_V3_UPDATE_URL="http://grlevelx.com/downloads/gr2analyst_3_update.exe"
 INSTALLER="/tmp/gr2analyst_setup.exe"
+UPDATER="/tmp/gr2analyst_update.exe"
 
 echo ">>> Downloading GR2Analyst installer …"
+INSTALLED_VERSION=""
 if wget -q --timeout=60 -O "${INSTALLER}" "${GR2A_V3_URL}"; then
     echo "    Got v3 installer."
+    INSTALLED_VERSION="v3"
 elif wget -q --timeout=60 -O "${INSTALLER}" "${GR2A_V2_URL}"; then
     echo "    v3 unavailable – fell back to v2 installer."
+    INSTALLED_VERSION="v2"
 else
     echo "!!! Could not download GR2Analyst from grlevelx.com."
     echo "    Place the installer manually at ${INSTALLER} and rebuild."
@@ -26,6 +31,21 @@ echo ">>> Running GR2Analyst installer (silent) …"
 # /SP- suppresses "Setup will install…" confirmation.
 xvfb-run wine "${INSTALLER}" /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES || true
 wineserver --wait
+
+# Apply the v3 update if the base install was v3
+if [ "${INSTALLED_VERSION}" = "v3" ]; then
+    echo ">>> Downloading GR2Analyst 3 update …"
+    if wget -q --timeout=60 -O "${UPDATER}" "${GR2A_V3_UPDATE_URL}"; then
+        echo "    Got v3 update."
+        echo ">>> Applying GR2Analyst 3 update (silent) …"
+        xvfb-run wine "${UPDATER}" /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES || true
+        wineserver --wait
+        rm -f "${UPDATER}"
+        echo "    ✓ Update applied."
+    else
+        echo "    ⚠ Could not download v3 update – skipping."
+    fi
+fi
 
 echo ">>> Verifying installation …"
 INSTALL_DIR="${WINEPREFIX}/drive_c/Program Files/GRLevelX"
