@@ -36,6 +36,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LIBGL_ALWAYS_SOFTWARE=1 \
     # Required for Wine/wineserver during Docker build
     XDG_RUNTIME_DIR=/tmp/runtime-root \
+    # Virtual display for headless Wine operations during build
+    DISPLAY=:99 \
     # GR2Analyst install path inside the Wine prefix
     GR2A_INSTALL_DIR="C:\\Program Files\\GRLevelX\\GR2Analyst_2" \
     GR2A_INSTALL_DIR_UNIX="/home/kasm-default-profile/.wine/drive_c/Program Files/GRLevelX/GR2Analyst_2"
@@ -84,38 +86,51 @@ RUN dpkg --add-architecture i386 && \
 #    Split into separate layers for better Docker cache utilisation.
 ###############################################################################
 RUN mkdir -p /tmp/runtime-root && \
+    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    sleep 1 && \
     echo ">>> Creating 32-bit Wine prefix …" && \
-    xvfb-run wineboot --init && \
+    wineboot --init && \
     wineserver --wait && \
-    xvfb-run winetricks -q win10 && \
+    winetricks -q win10 && \
     wineserver --wait && \
     echo ">>> Wine prefix ready."
 
 # DirectX libraries (d3dx9, d3dcompiler)
 RUN mkdir -p /tmp/runtime-root && \
-    xvfb-run winetricks -q d3dx9 d3dcompiler_43 d3dcompiler_47 && \
+    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    sleep 1 && \
+    winetricks -q d3dx9 d3dcompiler_43 d3dcompiler_47 && \
     wineserver --wait
 
 # Visual C++ runtime
 RUN mkdir -p /tmp/runtime-root && \
-    xvfb-run winetricks -q vcrun2019 && \
+    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    sleep 1 && \
+    winetricks -q vcrun2019 && \
     wineserver --wait
 
 # .NET Framework 4.8 (largest component)
 RUN mkdir -p /tmp/runtime-root && \
-    xvfb-run winetricks -q dotnet48 && \
+    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    sleep 1 && \
+    winetricks -q dotnet48 && \
     wineserver --wait
 
 # Fonts
 RUN mkdir -p /tmp/runtime-root && \
-    xvfb-run winetricks -q corefonts allfonts && \
+    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    sleep 1 && \
+    winetricks -q corefonts allfonts && \
     wineserver --wait
 
 ###############################################################################
 # 3. Wine display / D3D registry tweaks for headless + KasmVNC rendering
 ###############################################################################
 COPY src/ubuntu/install/wine_override/wine_d3d.reg /tmp/wine_d3d.reg
-RUN xvfb-run wine regedit /tmp/wine_d3d.reg && \
+RUN mkdir -p /tmp/runtime-root && \
+    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    sleep 1 && \
+    wine regedit /tmp/wine_d3d.reg && \
     wineserver --wait && \
     rm /tmp/wine_d3d.reg
 
@@ -124,7 +139,10 @@ RUN xvfb-run wine regedit /tmp/wine_d3d.reg && \
 #    The installer is from grlevelx.com and runs silently under Wine.
 ###############################################################################
 COPY src/ubuntu/install/gr2analyst/install_gr2analyst.sh ${INST_SCRIPTS}/gr2analyst/
-RUN chmod +x ${INST_SCRIPTS}/gr2analyst/install_gr2analyst.sh && \
+RUN mkdir -p /tmp/runtime-root && \
+    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    sleep 1 && \
+    chmod +x ${INST_SCRIPTS}/gr2analyst/install_gr2analyst.sh && \
     bash ${INST_SCRIPTS}/gr2analyst/install_gr2analyst.sh && \
     rm -rf ${INST_SCRIPTS}/gr2analyst/
 
@@ -136,7 +154,10 @@ COPY src/ubuntu/install/gr2analyst/color_tables/ \
 COPY src/ubuntu/install/gr2analyst/gr2analyst_settings.reg /tmp/gr2analyst_settings.reg
 COPY src/ubuntu/install/gr2analyst/placefiles.txt /tmp/placefiles.txt
 
-RUN xvfb-run wine regedit /tmp/gr2analyst_settings.reg && \
+RUN mkdir -p /tmp/runtime-root && \
+    Xvfb :99 -screen 0 1024x768x16 &>/dev/null & \
+    sleep 1 && \
+    wine regedit /tmp/gr2analyst_settings.reg && \
     wineserver --wait && \
     # Copy placefiles list into the install directory for reference / first-run script
     cp /tmp/placefiles.txt "${GR2A_INSTALL_DIR_UNIX}/placefiles.txt" && \
