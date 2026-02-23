@@ -149,7 +149,7 @@ COPY src/ubuntu/install/gr2analyst/launch_gr2analyst.sh /usr/local/bin/launch_gr
 COPY src/ubuntu/install/gr2analyst/gr2analyst.desktop \
      ${HOME}/Desktop/gr2analyst.desktop
 RUN chmod +x /usr/local/bin/launch_gr2analyst.sh ${HOME}/Desktop/gr2analyst.desktop && \
-    cp /usr/share/backgrounds/bg_kasm.png /usr/share/backgrounds/bg_default.png 2>/dev/null || true
+    { cp /usr/share/backgrounds/bg_kasm.png /usr/share/backgrounds/bg_default.png 2>/dev/null || true; }
 
 ###############################################################################
 # 7. Copy default profile so persistent-profile feature works
