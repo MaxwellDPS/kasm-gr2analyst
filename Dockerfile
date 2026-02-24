@@ -181,15 +181,16 @@ RUN chmod +x /usr/local/bin/launch_gr2analyst.sh ${HOME}/Desktop/gr2analyst.desk
 #    DISPLAY and XDG_RUNTIME_DIR were set for the Xvfb used during build;
 #    at runtime KASM's entrypoint manages these itself.
 ###############################################################################
-ENV DISPLAY="" \
-    XDG_RUNTIME_DIR=""
+ENV DISPLAY=:1 \
+    XDG_RUNTIME_DIR=/tmp/runtime-1000
 
 ###############################################################################
 # 8. Clean up build-time Xvfb lock files & runtime dir
 #    The Xvfb :99 instances used during build leave behind lock files that
 #    make KasmVNC think display :99 is already taken.
 ###############################################################################
-RUN rm -f /tmp/.X99-lock && rm -rf /tmp/.X11-unix/X99 /tmp/runtime-root
+RUN rm -f /tmp/.X99-lock && rm -rf /tmp/.X11-unix/X99 /tmp/runtime-root && \
+    mkdir -p /tmp/runtime-1000 && chown 1000:0 /tmp/runtime-1000 && chmod 700 /tmp/runtime-1000
 
 ###############################################################################
 # 9. Copy default profile so persistent-profile feature works
