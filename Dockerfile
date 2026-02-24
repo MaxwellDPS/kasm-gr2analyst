@@ -177,7 +177,22 @@ RUN chmod +x /usr/local/bin/launch_gr2analyst.sh ${HOME}/Desktop/gr2analyst.desk
     { cp /usr/share/backgrounds/bg_kasm.png /usr/share/backgrounds/bg_default.png 2>/dev/null || true; }
 
 ###############################################################################
-# 7. Copy default profile so persistent-profile feature works
+# 7. Reset build-only env vars before runtime
+#    DISPLAY and XDG_RUNTIME_DIR were set for the Xvfb used during build;
+#    at runtime KASM's entrypoint manages these itself.
+###############################################################################
+ENV DISPLAY="" \
+    XDG_RUNTIME_DIR=""
+
+###############################################################################
+# 8. Clean up build-time Xvfb lock files & runtime dir
+#    The Xvfb :99 instances used during build leave behind lock files that
+#    make KasmVNC think display :99 is already taken.
+###############################################################################
+RUN rm -f /tmp/.X99-lock && rm -rf /tmp/.X11-unix/X99 /tmp/runtime-root
+
+###############################################################################
+# 9. Copy default profile so persistent-profile feature works
 ###############################################################################
 RUN chown -R 1000:0 ${HOME} && \
     find ${HOME} -type d -exec chmod 770 {} + && \
