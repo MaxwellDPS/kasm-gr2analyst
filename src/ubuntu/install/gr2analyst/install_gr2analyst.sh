@@ -48,27 +48,36 @@ if [ "${INSTALLED_VERSION}" = "v3" ]; then
 fi
 
 echo ">>> Verifying installation …"
-INSTALL_DIR="${WINEPREFIX}/drive_c/Program Files/GRLevelX"
-if [ -d "${INSTALL_DIR}" ]; then
-    echo "    ✓ GR2Analyst installed at: ${INSTALL_DIR}"
-    ls -la "${INSTALL_DIR}/"
-else
-    # Some versions install to a slightly different path
-    ALT_DIR="${WINEPREFIX}/drive_c/Program Files/GR2Analyst"
-    ALT_DIR2="${WINEPREFIX}/drive_c/Program Files/GRLevelX/GR2Analyst_2"
-    ALT_DIR3="${WINEPREFIX}/drive_c/Program Files/GRLevelX/GR2Analyst"
-    for d in "${ALT_DIR}" "${ALT_DIR2}" "${ALT_DIR3}"; do
-        if [ -d "$d" ]; then
-            echo "    ✓ GR2Analyst installed at: $d"
-            ls -la "$d/"
-            break
-        fi
-    done
+# Search all known install paths for the actual executable
+GR2A_EXE=""
+FOUND_DIR=""
+for d in \
+    "${WINEPREFIX}/drive_c/Program Files/GRLevelX/GR2Analyst_3" \
+    "${WINEPREFIX}/drive_c/Program Files/GRLevelX/GR2Analyst_2" \
+    "${WINEPREFIX}/drive_c/Program Files/GRLevelX/GR2Analyst" \
+    "${WINEPREFIX}/drive_c/Program Files/GR2Analyst"; do
+    if [ -f "$d/gr2analyst.exe" ]; then
+        GR2A_EXE="$d/gr2analyst.exe"
+        FOUND_DIR="$d"
+        break
+    fi
+done
+
+if [ -z "${GR2A_EXE}" ]; then
+    echo "!!! GR2Analyst executable not found after installation."
+    echo "    Listing Program Files for debugging:"
+    ls -laR "${WINEPREFIX}/drive_c/Program Files/" 2>/dev/null || true
+    exit 1
 fi
 
-# Create the custom ColorTables directory if it doesn't already exist
-mkdir -p "${INSTALL_DIR}/GR2Analyst_2/ColorTables" 2>/dev/null || true
-mkdir -p "${INSTALL_DIR}/GR2Analyst/ColorTables" 2>/dev/null || true
+echo "    ✓ GR2Analyst installed at: ${FOUND_DIR}"
+ls -la "${FOUND_DIR}/"
+
+# Ensure ColorTables directory exists in the actual install location
+mkdir -p "${FOUND_DIR}/ColorTables" 2>/dev/null || true
+
+# Write the discovered install path so later Dockerfile steps can use it
+echo "${FOUND_DIR}" > /tmp/gr2a_install_path
 
 # Clean up
 rm -f "${INSTALLER}"

@@ -38,9 +38,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     XDG_RUNTIME_DIR=/tmp/runtime-root \
     # Virtual display for headless Wine operations during build
     DISPLAY=:99 \
-    # GR2Analyst install path inside the Wine prefix
-    GR2A_INSTALL_DIR="C:\\Program Files\\GRLevelX\\GR2Analyst_2" \
-    GR2A_INSTALL_DIR_UNIX="/home/kasm-default-profile/.wine/drive_c/Program Files/GRLevelX/GR2Analyst_2"
+    # GR2Analyst install path inside the Wine prefix (set dynamically after install)
+    # The installer tries v3 first (GR2Analyst_3), falling back to v2 (GR2Analyst_2).
+    # The launch wrapper searches multiple paths at runtime regardless of this value.
+    GR2A_INSTALL_DIR="C:\\Program Files\\GRLevelX\\GR2Analyst_3" \
+    GR2A_INSTALL_DIR_UNIX="/home/kasm-default-profile/.wine/drive_c/Program Files/GRLevelX/GR2Analyst_3"
 
 ###############################################################################
 # 1. System dependencies – Wine, Mesa, fonts, networking
@@ -152,19 +154,22 @@ RUN mkdir -p /tmp/runtime-root && \
 
 ###############################################################################
 # 5. Pre-configure GR2Analyst settings, color tables, placefiles
+#    The install path is discovered at install time (v3 -> GR2Analyst_3,
+#    v2 -> GR2Analyst_2) and written to /tmp/gr2a_install_path.
 ###############################################################################
-COPY src/ubuntu/install/gr2analyst/color_tables/ \
-     "${GR2A_INSTALL_DIR_UNIX}/ColorTables/"
+COPY src/ubuntu/install/gr2analyst/color_tables/ /tmp/gr2a_color_tables/
 COPY src/ubuntu/install/gr2analyst/gr2analyst_settings.reg /tmp/gr2analyst_settings.reg
 COPY src/ubuntu/install/gr2analyst/placefiles.txt /tmp/placefiles.txt
 
 RUN mkdir -p /tmp/runtime-root && \
     Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     sleep 1 && \
+    GR2A_DIR=$(cat /tmp/gr2a_install_path) && \
+    cp -r /tmp/gr2a_color_tables/* "${GR2A_DIR}/ColorTables/" && \
+    rm -rf /tmp/gr2a_color_tables && \
     wine regedit /tmp/gr2analyst_settings.reg && \
     wineserver --wait && \
-    # Copy placefiles list into the install directory for reference / first-run script
-    cp /tmp/placefiles.txt "${GR2A_INSTALL_DIR_UNIX}/placefiles.txt" && \
+    cp /tmp/placefiles.txt "${GR2A_DIR}/placefiles.txt" && \
     rm /tmp/gr2analyst_settings.reg /tmp/placefiles.txt
 
 ###############################################################################
