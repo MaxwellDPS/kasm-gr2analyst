@@ -29,7 +29,8 @@ fi
 echo ">>> Running GR2Analyst installer (silent) …"
 # Inno Setup /VERYSILENT suppresses all UI; /NORESTART skips reboot prompt;
 # /SP- suppresses "Setup will install…" confirmation.
-wine "${INSTALLER}" /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES || true
+# Enable Wine debug output during install to diagnose failures.
+WINEDEBUG=warn+all wine "${INSTALLER}" /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES 2>&1 || true
 wineserver --wait
 
 # Apply the v3 update if the base install was v3
@@ -38,7 +39,7 @@ if [ "${INSTALLED_VERSION}" = "v3" ]; then
     if wget -q --timeout=60 -O "${UPDATER}" "${GR2A_V3_UPDATE_URL}"; then
         echo "    Got v3 update."
         echo ">>> Applying GR2Analyst 3 update (silent) …"
-        wine "${UPDATER}" /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES || true
+        WINEDEBUG=warn+all wine "${UPDATER}" /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES 2>&1 || true
         wineserver --wait
         rm -f "${UPDATER}"
         echo "    ✓ Update applied."
