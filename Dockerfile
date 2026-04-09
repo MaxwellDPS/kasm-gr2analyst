@@ -74,6 +74,8 @@ RUN dpkg --add-architecture i386 && \
         # Core fonts & networking
         fonts-liberation fonts-dejavu-core \
         dnsutils iputils-ping net-tools iproute2 \
+        # Window management for full-screen auto-launch
+        wmctrl \
         # Virtual framebuffer for headless Wine installs during build
         xvfb && \
     # ── Winetricks (latest from GitHub) ──
@@ -182,16 +184,14 @@ RUN mkdir -p /tmp/runtime-root /usr/share/gr2analyst/color_tables && \
     rm -rf /tmp/gr2a_color_tables /tmp/gr2analyst_settings.reg /tmp/placefiles.txt
 
 ###############################################################################
-# 6. Desktop entry, launch wrapper & auto-start
+# 6. Launch wrapper & auto-start (no desktop icons – runs full-screen)
 ###############################################################################
 COPY src/ubuntu/install/gr2analyst/launch_gr2analyst.sh /usr/local/bin/launch_gr2analyst.sh
 COPY src/ubuntu/install/gr2analyst/custom_startup.sh /dockerstartup/custom_startup.sh
-COPY src/ubuntu/install/gr2analyst/gr2analyst.desktop \
-     ${HOME}/Desktop/gr2analyst.desktop
+COPY src/ubuntu/install/gr2analyst/xfce4-panel.xml \
+     ${HOME}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
 RUN chmod +x /usr/local/bin/launch_gr2analyst.sh \
-             /dockerstartup/custom_startup.sh \
-             ${HOME}/Desktop/gr2analyst.desktop && \
-    { cp /usr/share/backgrounds/bg_kasm.png /usr/share/backgrounds/bg_default.png 2>/dev/null || true; }
+             /dockerstartup/custom_startup.sh
 
 ###############################################################################
 # 7. Reset build-only env vars before runtime

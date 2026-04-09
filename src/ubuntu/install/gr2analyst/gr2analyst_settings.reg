@@ -13,8 +13,8 @@ Windows Registry Editor Version 5.00
 ; Polling: Iowa State free Level 2 feed (HTTPS)
 "PollingSource0"="https://mesonet-nexrad.agron.iastate.edu/level2/raw/"
 "PollingSourceCount"=dword:00000001
-; Default startup radar site – KFWS (Dallas-Fort Worth) is central US
-"StartupSite"="KFWS"
+; Default startup radar site – KNKX (San Diego, CA)
+"StartupSite"="KNKX"
 ; Show background map imagery by default
 "ShowBackground"=dword:00000001
 ; Show state outlines
@@ -43,12 +43,14 @@ Windows Registry Editor Version 5.00
 "NumPanels"=dword:00000001
 ; Background colour – dark for radar contrast
 "BackgroundColor"=dword:00000000
+; Start maximized / full screen
+"StartMaximized"=dword:00000001
 
 ; ──── Version 3 Settings ──────────────────────────────────────────────────
 [HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst_3]
 "PollingSource0"="https://mesonet-nexrad.agron.iastate.edu/level2/raw/"
 "PollingSourceCount"=dword:00000001
-"StartupSite"="KFWS"
+"StartupSite"="KNKX"
 "ShowBackground"=dword:00000001
 "ShowStates"=dword:00000001
 "ShowCounties"=dword:00000001
@@ -63,6 +65,7 @@ Windows Registry Editor Version 5.00
 "AnimSpeed"=dword:000000c8
 "NumPanels"=dword:00000001
 "BackgroundColor"=dword:00000000
+"StartMaximized"=dword:00000001
 
 ; ──── GIS overlay colours (makes map features readable on radar) ──────────
 [HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst\GIS]
@@ -80,6 +83,33 @@ Windows Registry Editor Version 5.00
 "CountyColor"=dword:00404040
 "HighwayColor"=dword:00606030
 "CityLabelColor"=dword:00FFFFFF
+
+; ──── NWS Warning Colours ────────────────────────────────────────────────
+; Standard NWS colours so warnings are immediately recognisable.
+; GR2Analyst stores these as 0x00BBGGRR (BGR, not RGB).
+[HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst\Warnings]
+; Tornado Warning – red (RGB FF0000 → BGR 0000FF)
+"TornadoColor"=dword:000000FF
+; Severe Thunderstorm Warning – orange (RGB FFA500 → BGR 00A5FF)
+; Note: GR2Analyst uses 00A5FF for its default orange
+"SevereColor"=dword:0000A5FF
+; Flash Flood Warning – dark green (RGB 8B0000 → BGR 00008B… actually green 008B00 → BGR 008B00)
+; NWS standard: dark red for flash flood, but GR2Analyst convention is green
+"FlashFloodColor"=dword:00008B00
+; Tornado Watch – yellow (RGB FFFF00 → BGR 00FFFF)
+"TornadoWatchColor"=dword:0000FFFF
+; Severe Thunderstorm Watch – dark orange (RGB FF8C00 → BGR 008CFF)
+"SevereWatchColor"=dword:00008CFF
+; Special Marine Warning – orange (RGB FFA500 → BGR 0000A5FF)
+"MarineColor"=dword:0000A5FF
+
+[HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst_3\Warnings]
+"TornadoColor"=dword:000000FF
+"SevereColor"=dword:0000A5FF
+"FlashFloodColor"=dword:00008B00
+"TornadoWatchColor"=dword:0000FFFF
+"SevereWatchColor"=dword:00008CFF
+"MarineColor"=dword:0000A5FF
 
 ; ──── Algorithm settings (hail algorithm thresholds) ──────────────────────
 [HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst\Algorithm]

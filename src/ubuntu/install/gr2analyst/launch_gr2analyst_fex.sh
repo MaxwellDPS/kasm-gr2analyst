@@ -48,8 +48,7 @@ if [ -z "${GR2A_EXE}" ]; then
     echo "!!! GR2Analyst executable not found in any expected location."
     echo "    Searched: ${GR2A_DIRS[*]}"
     echo "    Please verify the installation."
-    exec xfce4-terminal --title "GR2Analyst – Not Found" \
-        -e "bash -c 'echo GR2Analyst not found.; echo Check Wine prefix at ${WINEPREFIX}; bash'"
+    exit 1
 fi
 
 # ── Apply registry settings (once per profile) ──────────────────────────
