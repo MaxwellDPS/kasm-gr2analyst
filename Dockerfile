@@ -157,30 +157,40 @@ RUN mkdir -p /tmp/runtime-root && \
 # 5. Pre-configure GR2Analyst settings, color tables, placefiles
 #    The install path is discovered at install time (v3 -> GR2Analyst_3,
 #    v2 -> GR2Analyst_2) and written to /tmp/gr2a_install_path.
+#
+#    Settings, color tables, and placefiles are also stored in
+#    /usr/share/gr2analyst/ so the launch wrapper can re-apply them
+#    at runtime for fresh persistent profiles.
 ###############################################################################
 COPY src/ubuntu/install/gr2analyst/color_tables/ /tmp/gr2a_color_tables/
 COPY src/ubuntu/install/gr2analyst/gr2analyst_settings.reg /tmp/gr2analyst_settings.reg
 COPY src/ubuntu/install/gr2analyst/placefiles.txt /tmp/placefiles.txt
 
-RUN mkdir -p /tmp/runtime-root && \
+RUN mkdir -p /tmp/runtime-root /usr/share/gr2analyst/color_tables && \
     rm -f /tmp/.X99-lock /tmp/.X11-unix/X99 && \
     Xvfb :99 -screen 0 1024x768x16 >/dev/null 2>&1 & \
     sleep 2 && \
     GR2A_DIR=$(cat /tmp/gr2a_install_path) && \
     cp -r /tmp/gr2a_color_tables/* "${GR2A_DIR}/ColorTables/" && \
-    rm -rf /tmp/gr2a_color_tables && \
     wine regedit /tmp/gr2analyst_settings.reg && \
     wineserver --wait && \
     cp /tmp/placefiles.txt "${GR2A_DIR}/placefiles.txt" && \
-    rm /tmp/gr2analyst_settings.reg /tmp/placefiles.txt
+    # Store copies in /usr/share for runtime re-application on fresh profiles
+    cp -r /tmp/gr2a_color_tables/* /usr/share/gr2analyst/color_tables/ && \
+    cp /tmp/gr2analyst_settings.reg /usr/share/gr2analyst/gr2analyst_settings.reg && \
+    cp /tmp/placefiles.txt /usr/share/gr2analyst/placefiles.txt && \
+    rm -rf /tmp/gr2a_color_tables /tmp/gr2analyst_settings.reg /tmp/placefiles.txt
 
 ###############################################################################
-# 6. Desktop entry & launch wrapper
+# 6. Desktop entry, launch wrapper & auto-start
 ###############################################################################
 COPY src/ubuntu/install/gr2analyst/launch_gr2analyst.sh /usr/local/bin/launch_gr2analyst.sh
+COPY src/ubuntu/install/gr2analyst/custom_startup.sh /dockerstartup/custom_startup.sh
 COPY src/ubuntu/install/gr2analyst/gr2analyst.desktop \
      ${HOME}/Desktop/gr2analyst.desktop
-RUN chmod +x /usr/local/bin/launch_gr2analyst.sh ${HOME}/Desktop/gr2analyst.desktop && \
+RUN chmod +x /usr/local/bin/launch_gr2analyst.sh \
+             /dockerstartup/custom_startup.sh \
+             ${HOME}/Desktop/gr2analyst.desktop && \
     { cp /usr/share/backgrounds/bg_kasm.png /usr/share/backgrounds/bg_default.png 2>/dev/null || true; }
 
 ###############################################################################

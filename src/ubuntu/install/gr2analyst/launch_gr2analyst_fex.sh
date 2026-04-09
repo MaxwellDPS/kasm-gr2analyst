@@ -1,38 +1,27 @@
 #!/usr/bin/env bash
 ###############################################################################
-# launch_gr2analyst.sh – KASM launch wrapper for GR2Analyst under Wine
+# launch_gr2analyst_fex.sh – KASM launch wrapper for GR2Analyst via FEX-Emu
 #
-# On every launch this script:
-#   1. Detects GPU / falls back to software rendering
-#   2. Initialises the Wine prefix if needed (fresh persistent profiles)
-#   3. Applies registry settings if not already applied
-#   4. Syncs color tables into the install directory
-#   5. Locates and launches gr2analyst.exe
+# Same logic as launch_gr2analyst.sh but skips GPU detection
+# (FEX uses software rendering only).
 ###############################################################################
 set -euo pipefail
 
 export WINEPREFIX="${HOME}/.wine"
 export WINEARCH=win32
 export WINEDEBUG=-all
-# Fall back to software rendering if no GPU is detected
-export LIBGL_ALWAYS_SOFTWARE="${LIBGL_ALWAYS_SOFTWARE:-1}"
+export WINE_HOME="${WINE_HOME:-/opt/wine-stable}"
+# FEX + Wine uses Mesa llvmpipe software rendering
+export LIBGL_ALWAYS_SOFTWARE=1
 # Suppress Gecko/Mono popups
 export WINEDLLOVERRIDES="mscoree=d;mshtml=d"
 
-# ── Detect GPU availability and adjust renderer ──────────────────────────
-if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi >/dev/null 2>&1; then
-    echo "[GR2Analyst] NVIDIA GPU detected – using hardware rendering."
-    export LIBGL_ALWAYS_SOFTWARE=0
-elif [ -e /dev/dri/renderD128 ]; then
-    echo "[GR2Analyst] DRI render node detected – using hardware rendering."
-    export LIBGL_ALWAYS_SOFTWARE=0
-else
-    echo "[GR2Analyst] No GPU detected – using Mesa llvmpipe (software)."
-fi
+echo "[GR2Analyst/FEX] Using FEX-Emu for x86 emulation on ARM64."
+echo "[GR2Analyst/FEX] Software rendering (Mesa llvmpipe)."
 
 # ── Ensure Wine prefix exists (handles fresh persistent profiles) ────────
 if [ ! -d "${WINEPREFIX}/drive_c" ]; then
-    echo "[GR2Analyst] Initialising Wine prefix for new user profile …"
+    echo "[GR2Analyst/FEX] Initialising Wine prefix for new user profile …"
     wineboot --init
     wineserver --wait
 fi
@@ -67,7 +56,7 @@ fi
 SETTINGS_STAMP="${WINEPREFIX}/.gr2analyst_settings_applied"
 SETTINGS_REG="/usr/share/gr2analyst/gr2analyst_settings.reg"
 if [ -f "${SETTINGS_REG}" ] && [ ! -f "${SETTINGS_STAMP}" ]; then
-    echo "[GR2Analyst] Applying default registry settings …"
+    echo "[GR2Analyst/FEX] Applying default registry settings …"
     wine regedit "${SETTINGS_REG}" 2>/dev/null || true
     wineserver --wait
     touch "${SETTINGS_STAMP}"
@@ -87,6 +76,6 @@ if [ -f "${PLACEFILES_SRC}" ] && [ ! -f "${GR2A_DIR}/placefiles.txt" ]; then
 fi
 
 # ── Launch ───────────────────────────────────────────────────────────────
-echo "[GR2Analyst] Launching: ${GR2A_EXE}"
+echo "[GR2Analyst/FEX] Launching: ${GR2A_EXE}"
 cd "${GR2A_DIR}"
 exec wine "${GR2A_EXE}" "$@"
