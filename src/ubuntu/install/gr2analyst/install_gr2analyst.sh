@@ -27,18 +27,10 @@ else
 fi
 
 echo ">>> Running GR2Analyst installer (silent) …"
-echo "    DISPLAY=${DISPLAY}"
-# Verify Xvfb is reachable; if not, start one
-if ! ls /tmp/.X11-unix/X${DISPLAY#:} >/dev/null 2>&1; then
-    echo "    Xvfb not found on ${DISPLAY}, starting one …"
-    Xvfb "${DISPLAY}" -screen 0 1024x768x16 >/dev/null 2>&1 &
-    sleep 2
-fi
-echo "    X11 socket: $(ls -la /tmp/.X11-unix/ 2>/dev/null || echo 'none')"
 # Inno Setup /VERYSILENT suppresses all UI; /NORESTART skips reboot prompt;
 # /SP- suppresses "Setup will install…" confirmation.
-echo "    Running: wine ${INSTALLER} /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES"
-wine "${INSTALLER}" /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES 2>&1 || echo "    Wine installer exited with code $?"
+# Note: Xvfb must be running on $DISPLAY before this script is called.
+wine "${INSTALLER}" /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES || true
 wineserver --wait
 
 # Apply the v3 update if the base install was v3
@@ -47,7 +39,7 @@ if [ "${INSTALLED_VERSION}" = "v3" ]; then
     if wget -q --timeout=60 -O "${UPDATER}" "${GR2A_V3_UPDATE_URL}"; then
         echo "    Got v3 update."
         echo ">>> Applying GR2Analyst 3 update (silent) …"
-        wine "${UPDATER}" /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES 2>&1 || echo "    Wine updater exited with code $?"
+        wine "${UPDATER}" /VERYSILENT /NORESTART /SP- /SUPPRESSMSGBOXES || true
         wineserver --wait
         rm -f "${UPDATER}"
         echo "    ✓ Update applied."
