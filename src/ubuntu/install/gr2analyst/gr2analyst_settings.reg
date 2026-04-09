@@ -17,34 +17,38 @@ Windows Registry Editor Version 5.00
 "StartupSite"="KNKX"
 ; Show background map imagery by default
 "ShowBackground"=dword:00000001
-; Show state outlines
 "ShowStates"=dword:00000001
-; Show county outlines
 "ShowCounties"=dword:00000001
-; Show roads
 "ShowRoads"=dword:00000001
-; Show city labels
 "ShowCities"=dword:00000001
-; Show active warnings
 "ShowWarnings"=dword:00000001
-; Show storm tracks
 "ShowTracks"=dword:00000001
-; Enable hail icons
 "ShowHail"=dword:00000001
-; Enable mesocyclone icons
 "ShowMeso"=dword:00000001
-; Enable TVS (Tornado Vortex Signature) icons
 "ShowTVS"=dword:00000001
-; Enable LSR icons (Local Storm Reports)
 "ShowLSR"=dword:00000001
-; Animation speed (ms per frame)
 "AnimSpeed"=dword:000000c8
-; Number of panels (1 = single panel default)
 "NumPanels"=dword:00000001
-; Background colour – dark for radar contrast
 "BackgroundColor"=dword:00000000
-; Start maximized / full screen
 "StartMaximized"=dword:00000001
+; ── Color Tables ──
+"ColorTable_BR"="C:\\Program Files\\GRLevelX\\GR2Analyst_2\\ColorTables\\Enhanced_Reflectivity.pal"
+"ColorTable_BV"="C:\\Program Files\\GRLevelX\\GR2Analyst_2\\ColorTables\\Enhanced_Velocity.pal"
+"ColorTable_CC"="C:\\Program Files\\GRLevelX\\GR2Analyst_2\\ColorTables\\Correlation_Coefficient.pal"
+; ── Placefiles (auto-loaded) ──
+"PlacefileCount"=dword:00000006
+"Placefile0"="http://placefilenation.com/Placefiles/mcd.php"
+"PlacefileEnabled0"=dword:00000001
+"Placefile1"="http://placefilenation.com/Placefiles/severeWatch.php"
+"PlacefileEnabled1"=dword:00000001
+"Placefile2"="http://placefilenation.com/Placefiles/spcday1.php"
+"PlacefileEnabled2"=dword:00000001
+"Placefile3"="http://placefilenation.com/Placefiles/mping_30min.php"
+"PlacefileEnabled3"=dword:00000001
+"Placefile4"="http://placefilenation.com/Placefiles/mping_15min.php"
+"PlacefileEnabled4"=dword:00000001
+"Placefile5"="http://placefilenation.com/Placefiles/metars.php"
+"PlacefileEnabled5"=dword:00000000
 
 ; ──── Version 3 Settings ──────────────────────────────────────────────────
 [HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst_3]
@@ -66,16 +70,30 @@ Windows Registry Editor Version 5.00
 "NumPanels"=dword:00000001
 "BackgroundColor"=dword:00000000
 "StartMaximized"=dword:00000001
+; ── Color Tables ──
+"ColorTable_BR"="C:\\Program Files\\GRLevelX\\GR2Analyst_3\\ColorTables\\Enhanced_Reflectivity.pal"
+"ColorTable_BV"="C:\\Program Files\\GRLevelX\\GR2Analyst_3\\ColorTables\\Enhanced_Velocity.pal"
+"ColorTable_CC"="C:\\Program Files\\GRLevelX\\GR2Analyst_3\\ColorTables\\Correlation_Coefficient.pal"
+; ── Placefiles (auto-loaded) ──
+"PlacefileCount"=dword:00000006
+"Placefile0"="http://placefilenation.com/Placefiles/mcd.php"
+"PlacefileEnabled0"=dword:00000001
+"Placefile1"="http://placefilenation.com/Placefiles/severeWatch.php"
+"PlacefileEnabled1"=dword:00000001
+"Placefile2"="http://placefilenation.com/Placefiles/spcday1.php"
+"PlacefileEnabled2"=dword:00000001
+"Placefile3"="http://placefilenation.com/Placefiles/mping_30min.php"
+"PlacefileEnabled3"=dword:00000001
+"Placefile4"="http://placefilenation.com/Placefiles/mping_15min.php"
+"PlacefileEnabled4"=dword:00000001
+"Placefile5"="http://placefilenation.com/Placefiles/metars.php"
+"PlacefileEnabled5"=dword:00000000
 
 ; ──── GIS overlay colours (makes map features readable on radar) ──────────
 [HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst\GIS]
-; State outlines – light gray
 "StateColor"=dword:00808080
-; County outlines – dark gray
 "CountyColor"=dword:00404040
-; Highway colour – dim yellow
 "HighwayColor"=dword:00606030
-; City label colour – white
 "CityLabelColor"=dword:00FFFFFF
 
 [HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst_3\GIS]
@@ -84,23 +102,19 @@ Windows Registry Editor Version 5.00
 "HighwayColor"=dword:00606030
 "CityLabelColor"=dword:00FFFFFF
 
-; ──── NWS Warning Colours ────────────────────────────────────────────────
-; Standard NWS colours so warnings are immediately recognisable.
-; GR2Analyst stores these as 0x00BBGGRR (BGR, not RGB).
+; ──── NWS Warning Colours (BGR format) ───────────────────────────────────
 [HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst\Warnings]
-; Tornado Warning – red (RGB FF0000 → BGR 0000FF)
+; Tornado Warning – red
 "TornadoColor"=dword:000000FF
-; Severe Thunderstorm Warning – orange (RGB FFA500 → BGR 00A5FF)
-; Note: GR2Analyst uses 00A5FF for its default orange
+; Severe Thunderstorm Warning – orange
 "SevereColor"=dword:0000A5FF
-; Flash Flood Warning – dark green (RGB 8B0000 → BGR 00008B… actually green 008B00 → BGR 008B00)
-; NWS standard: dark red for flash flood, but GR2Analyst convention is green
+; Flash Flood Warning – green
 "FlashFloodColor"=dword:00008B00
-; Tornado Watch – yellow (RGB FFFF00 → BGR 00FFFF)
+; Tornado Watch – yellow
 "TornadoWatchColor"=dword:0000FFFF
-; Severe Thunderstorm Watch – dark orange (RGB FF8C00 → BGR 008CFF)
+; Severe Thunderstorm Watch – dark orange
 "SevereWatchColor"=dword:00008CFF
-; Special Marine Warning – orange (RGB FFA500 → BGR 0000A5FF)
+; Special Marine Warning – orange
 "MarineColor"=dword:0000A5FF
 
 [HKEY_CURRENT_USER\Software\GRLevelX\GR2Analyst_3\Warnings]
