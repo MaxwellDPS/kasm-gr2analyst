@@ -174,6 +174,16 @@ RUN mkdir -p /tmp/runtime-root /usr/share/gr2analyst/color_tables && \
     sleep 2 && \
     GR2A_DIR=$(cat /tmp/gr2a_install_path) && \
     cp -r /tmp/gr2a_color_tables/* "${GR2A_DIR}/ColorTables/" && \
+    # ── Run GR2Analyst briefly to trigger first-run init ──────────────
+    # GR2Analyst creates default registry keys on first launch which
+    # overwrite any pre-set values. Let it initialise, then kill it
+    # and apply our settings on top.
+    echo ">>> Running GR2Analyst first-run init …" && \
+    cd "${GR2A_DIR}" && \
+    timeout 15 wine gr2analyst.exe 2>/dev/null || true && \
+    wineserver --wait && \
+    echo ">>> First-run init complete. Applying custom settings …" && \
+    # ── Now apply our settings AFTER the first-run defaults ──────────
     wine regedit /tmp/gr2analyst_settings.reg && \
     wineserver --wait && \
     echo ">>> Verifying registry import …" && \

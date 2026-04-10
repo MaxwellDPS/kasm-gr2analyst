@@ -227,6 +227,11 @@ RUN mkdir -p /tmp/runtime-root /usr/share/gr2analyst/color_tables && \
     sleep 2 && \
     GR2A_DIR=$(cat /tmp/gr2a_install_path) && \
     cp -r /tmp/gr2a_color_tables/* "${GR2A_DIR}/ColorTables/" && \
+    echo ">>> Running GR2Analyst first-run init …" && \
+    cd "${GR2A_DIR}" && \
+    timeout 15 wine gr2analyst.exe 2>/dev/null || true && \
+    wineserver --wait && \
+    echo ">>> First-run init complete. Applying custom settings …" && \
     wine regedit /tmp/gr2analyst_settings.reg && \
     wineserver --wait && \
     cp /tmp/placefiles.txt "${GR2A_DIR}/placefiles.txt" && \
