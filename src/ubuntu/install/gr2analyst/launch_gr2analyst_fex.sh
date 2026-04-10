@@ -51,14 +51,12 @@ if [ -z "${GR2A_EXE}" ]; then
     exit 1
 fi
 
-# ── Apply registry settings (once per profile) ──────────────────────────
-SETTINGS_STAMP="${WINEPREFIX}/.gr2analyst_settings_applied"
+# ── Apply registry settings (every launch) ───────────────────────────────
 SETTINGS_REG="/usr/share/gr2analyst/gr2analyst_settings.reg"
-if [ -f "${SETTINGS_REG}" ] && [ ! -f "${SETTINGS_STAMP}" ]; then
-    echo "[GR2Analyst/FEX] Applying default registry settings …"
+if [ -f "${SETTINGS_REG}" ]; then
+    echo "[GR2Analyst/FEX] Applying registry settings …"
     wine regedit "${SETTINGS_REG}" 2>/dev/null || true
     wineserver --wait
-    touch "${SETTINGS_STAMP}"
 fi
 
 # ── Sync color tables into install directory ─────────────────────────────
