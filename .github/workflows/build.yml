@@ -189,6 +189,11 @@ jobs:
               [ "$FOUND" = "1" ] || { echo "✗ GR2Analyst not found!"; exit 1; } &&
               echo "=== Checking color tables ===" &&
               find /home/kasm-default-profile/.wine -name "*.pal" -type f 2>/dev/null | head -10 &&
+              echo "=== Checking registry settings ===" &&
+              export WINEPREFIX=/home/kasm-default-profile/.wine &&
+              export WINEDEBUG=-all &&
+              wine reg query "HKCU\\Software\\GRLevelX\\GR2Analyst_3" 2>/dev/null || echo "(registry query failed)" &&
+              wine reg query "HKCU\\Software\\GRLevelX\\GR2Analyst_3\\Warnings" 2>/dev/null || echo "(no Warnings key)" &&
               echo "=== Checking network ===" &&
               ping -c 1 mesonet-nexrad.agron.iastate.edu || echo "(ping blocked in CI – OK)" &&
               echo "=== All checks passed ==="

@@ -176,6 +176,9 @@ RUN mkdir -p /tmp/runtime-root /usr/share/gr2analyst/color_tables && \
     cp -r /tmp/gr2a_color_tables/* "${GR2A_DIR}/ColorTables/" && \
     wine regedit /tmp/gr2analyst_settings.reg && \
     wineserver --wait && \
+    echo ">>> Verifying registry import …" && \
+    wine reg query "HKCU\\Software\\GRLevelX\\GR2Analyst_3" 2>/dev/null && \
+    echo ">>> Registry import verified." && \
     cp /tmp/placefiles.txt "${GR2A_DIR}/placefiles.txt" && \
     # Store copies in /usr/share for runtime re-application on fresh profiles
     cp -r /tmp/gr2a_color_tables/* /usr/share/gr2analyst/color_tables/ && \
