@@ -76,6 +76,8 @@ RUN dpkg --add-architecture i386 && \
         dnsutils iputils-ping net-tools iproute2 \
         # Window management for full-screen auto-launch
         wmctrl \
+        # Automate GUI interactions during headless build
+        xdotool \
         # Virtual framebuffer for headless Wine installs during build
         xvfb && \
     # ── Winetricks (latest from GitHub) ──
@@ -174,13 +176,29 @@ RUN mkdir -p /tmp/runtime-root /usr/share/gr2analyst/color_tables && \
     sleep 2 && \
     GR2A_DIR=$(cat /tmp/gr2a_install_path) && \
     cp -r /tmp/gr2a_color_tables/* "${GR2A_DIR}/ColorTables/" && \
-    # ── Run GR2Analyst briefly to trigger first-run init ──────────────
-    # GR2Analyst creates default registry keys on first launch which
-    # overwrite any pre-set values. Let it initialise, then kill it
-    # and apply our settings on top.
+    # ── Run GR2Analyst first-run to dismiss the init wizard ─────────
+    # GR2Analyst v3 shows an "Initialize L2 Data Feed" dialog on
+    # first launch. We must click through it or the dialog appears
+    # every time. Use xdotool to click "Use the Iowa State L2 feed".
     echo ">>> Running GR2Analyst first-run init …" && \
     cd "${GR2A_DIR}" && \
-    timeout 15 wine gr2analyst.exe 2>/dev/null || true && \
+    wine gr2analyst.exe 2>/dev/null & \
+    GR2A_PID=$! && \
+    echo "    Waiting for first-run dialog …" && \
+    for i in $(seq 1 30); do \
+        sleep 2 && \
+        if xdotool search --name "Initialize L2" 2>/dev/null | head -1 | grep -q .; then \
+            echo "    Found dialog, clicking Iowa State L2 feed …" && \
+            DIALOG_WIN=$(xdotool search --name "Initialize L2" 2>/dev/null | head -1) && \
+            xdotool windowactivate "$DIALOG_WIN" 2>/dev/null && \
+            sleep 1 && \
+            xdotool key Return 2>/dev/null && \
+            echo "    Dialog dismissed." && \
+            break; \
+        fi; \
+    done && \
+    sleep 5 && \
+    kill $GR2A_PID 2>/dev/null || true && \
     wineserver --wait && \
     echo ">>> First-run init complete. Applying custom settings …" && \
     # ── Now apply our settings AFTER the first-run defaults ──────────
