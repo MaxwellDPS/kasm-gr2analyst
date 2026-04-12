@@ -178,22 +178,24 @@ RUN mkdir -p /tmp/runtime-root /usr/share/gr2analyst/color_tables && \
     cp -r /tmp/gr2a_color_tables/* "${GR2A_DIR}/ColorTables/" && \
     # ── Run GR2Analyst first-run to dismiss the init wizard ─────────
     # GR2Analyst v3 shows an "Initialize L2 Data Feed" dialog on
-    # first launch. We must click through it or the dialog appears
-    # every time. Use xdotool to click "Use the Iowa State L2 feed".
+    # first launch that must be dismissed or it reappears every time.
+    # Wait for any Wine window, then press Enter to select the
+    # default "Use the Iowa State L2 feed" button.
     echo ">>> Running GR2Analyst first-run init …" && \
     cd "${GR2A_DIR}" && \
     wine gr2analyst.exe 2>/dev/null & \
     GR2A_PID=$! && \
-    echo "    Waiting for first-run dialog …" && \
+    echo "    Waiting for Wine window …" && \
     for i in $(seq 1 30); do \
         sleep 2 && \
-        if xdotool search --name "Initialize L2" 2>/dev/null | head -1 | grep -q .; then \
-            echo "    Found dialog, clicking Iowa State L2 feed …" && \
-            DIALOG_WIN=$(xdotool search --name "Initialize L2" 2>/dev/null | head -1) && \
-            xdotool windowactivate "$DIALOG_WIN" 2>/dev/null && \
-            sleep 1 && \
-            xdotool key Return 2>/dev/null && \
-            echo "    Dialog dismissed." && \
+        WINS=$(xdotool search --onlyvisible --name "" 2>/dev/null || true) && \
+        if [ -n "$WINS" ]; then \
+            echo "    Found window(s): $WINS" && \
+            sleep 3 && \
+            xdotool key Return 2>/dev/null || true && \
+            echo "    Sent Enter key to dismiss dialog." && \
+            sleep 5 && \
+            xdotool key Return 2>/dev/null || true && \
             break; \
         fi; \
     done && \
